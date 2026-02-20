@@ -45,11 +45,10 @@ public class MyJavaSoundAudioDevice extends AudioDeviceBase {
 
     protected DataLine.Info getSourceLineInfo() {
         AudioFormat fmt = getAudioFormat();
-        DataLine.Info info = new DataLine.Info(SourceDataLine.class, fmt);
-        return info;
+        return new DataLine.Info(SourceDataLine.class, fmt);
     }
 
-    public void open(AudioFormat fmt) throws JavaLayerException {
+    public void open(AudioFormat fmt) {
         if (!isOpen()) {
             setAudioFormat(fmt);
             openImpl();
@@ -74,8 +73,7 @@ Debug.println(Level.FINE, "volume: " + gain + ", " + hashCode());
     }
 
     @Override
-    public void openImpl()
-            throws JavaLayerException {
+    public void openImpl() {
     }
 
     // createSource fix.

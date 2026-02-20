@@ -23,7 +23,7 @@ package javazoom.jl.player.advanced;
  * An event which indicates a <code>Player</code> has performed an 'playback
  * action'
  *
- * @author Paul Stanton (http://wanto.f2o.org/)
+ * @author Paul Stanton (<a href="http://wanto.f2o.org/">...</a>)
  */
 public class PlaybackEvent {
     public static final int STOPPED = 1;

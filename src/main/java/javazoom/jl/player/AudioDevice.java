@@ -54,7 +54,7 @@ public interface AudioDevice {
      *                <p>
      *                If the audio device is already open, this method returns silently.
      */
-    void open(Decoder decoder) throws JavaLayerException;
+    void open(Decoder decoder);
 
     /**
      * Retrieves the open state of this audio device.

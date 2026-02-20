@@ -38,9 +38,9 @@ import javazoom.jl.player.FactoryRegistry;
 public class AdvancedPlayer {
 
     /** The MPEG audio bitstream. */
-    private Bitstream bitstream;
+    private final Bitstream bitstream;
     /** The MPEG audio decoder. */
-    private Decoder decoder;
+    private final Decoder decoder;
     /** The AudioDevice the audio samples are written to. */
     private AudioDevice audio;
     /** Has the player been closed? */
@@ -74,10 +74,8 @@ public class AdvancedPlayer {
      * Plays a number of MPEG audio frames.
      *
      * @param frames The number of frames to play.
-     * @return true if the last frame was played, or false if there are
-     * more frames.
      */
-    public boolean play(int frames) throws JavaLayerException {
+    public void play(int frames) throws JavaLayerException {
         boolean ret = true;
 
         // report to listener
@@ -100,7 +98,6 @@ public class AdvancedPlayer {
             if (listener != null) listener.playbackFinished(createEvent(out, PlaybackEvent.STOPPED));
         }
 
-        return ret;
     }
 
     /**
@@ -170,13 +167,12 @@ public class AdvancedPlayer {
      *
      * @param start The first frame to play
      * @param end   The last frame to play
-     * @return true if the last frame was played, or false if there are more frames.
      */
-    public boolean play(int start, int end) throws JavaLayerException {
+    public void play(int start, int end) throws JavaLayerException {
         boolean ret = true;
         int offset = start;
         while (offset-- > 0 && ret) ret = skipFrame();
-        return play(end - start);
+        play(end - start);
     }
 
     /**

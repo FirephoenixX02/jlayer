@@ -68,7 +68,7 @@ public class RiffFile {
     public static final int RFM_READ = 2;
 
     /** header for whole file */
-    private RiffChunkHeader riffHeader;
+    private final RiffChunkHeader riffHeader;
     /** current file I/O mode */
     protected int fmode;
     /** I/O stream to use */
@@ -297,7 +297,7 @@ public class RiffFile {
      * Expect numBytes data.
      */
     public int expect(String data, int numBytes) {
-        byte target = 0;
+        byte target;
         int cnt = 0;
         try {
             while ((numBytes--) != 0) {
@@ -430,7 +430,6 @@ public class RiffFile {
      */
     public static int fourCC(String chunkName) {
         byte[] p = chunkName.getBytes();
-        int ret = (((p[0] << 24) & 0xFF000000) | ((p[1] << 16) & 0x00FF0000) | ((p[2] << 8) & 0x0000FF00) | (p[3] & 0x000000FF));
-        return ret;
+        return (((p[0] << 24) & 0xFF000000) | ((p[1] << 16) & 0x00FF0000) | ((p[2] << 8) & 0x0000FF00) | (p[3] & 0x000000FF));
     }
 }

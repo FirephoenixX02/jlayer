@@ -69,7 +69,7 @@ and anyone can add his contribution. JLayer is licensed under LGPL (see [LICENSE
    or
 
 ```
-  java javazoom.jl.player.jlp -url http://www.aserver.com/remotefile.mp3
+  java javazoom.jl.player.jlp -url https://www.aserver.com/remotefile.mp3
 ```
 
   Note : MP3 simple player only works under JVM that supports JavaSound 1.0 (i.e JDK1.3.x+)
@@ -85,7 +85,7 @@ and anyone can add his contribution. JLayer is licensed under LGPL (see [LICENSE
   Yes, use the following command to play music from stream :
 
 ```
-  java javazoom.jl.player.jlp -url http://www.shoutcastserver.com:8000
+  java javazoom.jl.player.jlp -url https://www.shoutcastserver.com:8000
 ```
 
   (If JLayer returns without playing SHOUTcast stream then it might mean 

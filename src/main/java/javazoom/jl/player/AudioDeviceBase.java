@@ -51,7 +51,7 @@ public abstract class AudioDeviceBase implements AudioDevice {
      *                to this audio device.
      */
     @Override
-    public synchronized void open(Decoder decoder) throws JavaLayerException {
+    public synchronized void open(Decoder decoder) {
         if (!isOpen()) {
             this.decoder = decoder;
             openImpl();
@@ -63,7 +63,7 @@ public abstract class AudioDeviceBase implements AudioDevice {
      * Template method to provide the
      * implementation for the opening of the audio device.
      */
-    protected void openImpl() throws JavaLayerException {
+    protected void openImpl() {
     }
 
     /**

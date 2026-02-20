@@ -59,13 +59,13 @@ public class jlap {
         System.out.println(" e.g. : java javazoom.jl.player.advanced.jlap localfile.mp3");
     }
 
-    public static AdvancedPlayer playMp3(File mp3, PlaybackListener listener) throws IOException, JavaLayerException {
-        return playMp3(mp3, 0, Integer.MAX_VALUE, listener);
+    public static void playMp3(File mp3, PlaybackListener listener) throws IOException, JavaLayerException {
+        playMp3(mp3, 0, Integer.MAX_VALUE, listener);
     }
 
-    public static AdvancedPlayer playMp3(File mp3, int start, int end, PlaybackListener listener) throws IOException,
+    public static void playMp3(File mp3, int start, int end, PlaybackListener listener) throws IOException,
             JavaLayerException {
-        return playMp3(new BufferedInputStream(Files.newInputStream(mp3.toPath())), start, end, listener);
+        playMp3(new BufferedInputStream(Files.newInputStream(mp3.toPath())), start, end, listener);
     }
 
     public static AdvancedPlayer playMp3(InputStream is,

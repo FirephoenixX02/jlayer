@@ -22,7 +22,7 @@ package javazoom.jl.player.advanced;
 /**
  * Listener for javalayer Player playback
  *
- * @author Paul Stanton (http://wanto.f2o.org/)
+ * @author Paul Stanton (<a href="http://wanto.f2o.org/">...</a>)
  */
 public abstract class PlaybackListener {
     public void playbackStarted(PlaybackEvent evt) {

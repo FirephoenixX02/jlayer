@@ -105,8 +105,8 @@ public class jlp {
         System.out.println("Usage: jlp [-url] <filename>");
         System.out.println();
         System.out.println(" e.g. : java javazoom.jl.player.jlp localfile.mp3");
-        System.out.println("        java javazoom.jl.player.jlp -url http://www.server.com/remotefile.mp3");
-        System.out.println("        java javazoom.jl.player.jlp -url http://www.shoutcastserver.com:8000");
+        System.out.println("        java javazoom.jl.player.jlp -url https://www.server.com/remotefile.mp3");
+        System.out.println("        java javazoom.jl.player.jlp -url https://www.shoutcastserver.com:8000");
     }
 
     public void play()
@@ -138,8 +138,7 @@ public class jlp {
 
         URL url = new URL(fFilename);
         InputStream fin = url.openStream();
-        BufferedInputStream bin = new BufferedInputStream(fin);
-        return bin;
+        return new BufferedInputStream(fin);
     }
 
     /**
@@ -148,8 +147,7 @@ public class jlp {
     protected InputStream getInputStream()
             throws IOException {
         FileInputStream fin = new FileInputStream(fFilename);
-        BufferedInputStream bin = new BufferedInputStream(fin);
-        return bin;
+        return new BufferedInputStream(fin);
     }
 
     /**

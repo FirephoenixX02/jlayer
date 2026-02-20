@@ -57,9 +57,9 @@ public class Decoder implements DecoderErrors {
     private int outputFrequency;
     private int outputChannels;
 
-    private Equalizer equalizer = new Equalizer();
+    private final Equalizer equalizer = new Equalizer();
 
-    private Params params;
+    private final Params params;
 
     private boolean initialized;
 
@@ -232,7 +232,7 @@ public class Decoder implements DecoderErrors {
         return decoder;
     }
 
-    private void initialize(Header header) throws DecoderException {
+    private void initialize(Header header) {
 
         // REVIEW: allow customizable scale factor
         float scalefactor = 32700.0f;
@@ -270,7 +270,7 @@ public class Decoder implements DecoderErrors {
 
         private OutputChannels outputChannels = OutputChannels.BOTH;
 
-        private Equalizer equalizer = new Equalizer();
+        private final Equalizer equalizer = new Equalizer();
 
         public Params() {
         }

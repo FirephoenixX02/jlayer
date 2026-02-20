@@ -204,7 +204,6 @@ public final class Header {
     /**
      * Parse frame to extract optional VBR frame.
      *
-     * @param firstFrame
      * @author E.B (javalayer@javazoom.net)
      */
     void parseVBR(byte[] firstFrame) throws BitstreamException {
@@ -237,7 +236,7 @@ public final class Header {
                 System.arraycopy(firstFrame, offset + length, flags, 0, flags.length);
                 length += flags.length;
                 // Read number of frames (if available).
-                if ((flags[3] & (byte) (1 << 0)) != 0) {
+                if ((flags[3] & (byte) (1)) != 0) {
                     System.arraycopy(firstFrame, offset + length, tmp, 0, tmp.length);
                     h_vbr_frames = (tmp[0] << 24) & 0xFF000000 | (tmp[1] << 16) & 0x00FF0000 | (tmp[2] << 8) & 0x0000FF00 | tmp[3] & 0x000000FF;
                     length += 4;

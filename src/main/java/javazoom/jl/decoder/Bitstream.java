@@ -45,7 +45,7 @@ import java.io.PushbackInputStream;
 /**
  * The <code>Bistream</code> class is responsible for parsing
  * an MPEG audio bitstream.
- *
+ * <p>
  * <b>REVIEW:</b> much of the parsing currently occurs in the
  * various decoders. This should be moved into this class and associated
  * inner classes.
@@ -56,13 +56,13 @@ public final class Bitstream implements BitstreamErrors {
      * Synchronization control constant for the initial
      * synchronization to the start of a frame.
      */
-    static byte INITIAL_SYNC = 0;
+    static final byte INITIAL_SYNC = 0;
 
     /**
      * Synchronization control constant for non-initial frame
      * synchronizations.
      */
-    static byte STRICT_SYNC = 1;
+    static final byte STRICT_SYNC = 1;
 
     /**
      * Maximum size of the frame buffer.
@@ -84,7 +84,7 @@ public final class Bitstream implements BitstreamErrors {
     /**
      * The bytes read from the stream.
      */
-    private byte[] frameBytes = new byte[BUFFER_INT_SIZE * 4];
+    private final byte[] frameBytes = new byte[BUFFER_INT_SIZE * 4];
 
     /**
      * Index into <code>frameBuffer</code> where the next bits are
@@ -124,11 +124,11 @@ public final class Bitstream implements BitstreamErrors {
 
     private final byte[] syncBuf = new byte[4];
 
-    private Crc16[] crc = new Crc16[1];
+    private final Crc16[] crc = new Crc16[1];
 
     private byte[] rawid3v2 = null;
 
-    private boolean firstframe = true;
+    private boolean firstframe;
 
     /**
      * Construct a IBitstream that reads data from a
@@ -192,7 +192,6 @@ public final class Bitstream implements BitstreamErrors {
      *
      * @param in MP3 InputStream
      * @return size of ID3v2 frames + header
-     * @throws IOException
      * @author JavaZOOM
      */
     private int readID3v2Header(InputStream in) throws IOException {
@@ -221,15 +220,13 @@ public final class Bitstream implements BitstreamErrors {
         if (rawid3v2 == null)
             return null;
         else {
-            ByteArrayInputStream bain = new ByteArrayInputStream(rawid3v2);
-            return bain;
+            return new ByteArrayInputStream(rawid3v2);
         }
     }
 
     /**
      * Close the Bitstream.
      *
-     * @throws BitstreamException
      */
     public void close() throws BitstreamException {
         try {
@@ -279,7 +276,6 @@ public final class Bitstream implements BitstreamErrors {
      * Read next MP3 frame.
      *
      * @return MP3 frame header.
-     * @throws BitstreamException
      */
     private Header readNextFrame() throws BitstreamException {
         if (frameSize == -1) {
@@ -291,7 +287,6 @@ public final class Bitstream implements BitstreamErrors {
     /**
      * Read next MP3 frame.
      *
-     * @throws BitstreamException
      */
     private void nextFrame() throws BitstreamException {
         // entire frame is read by the header class.
@@ -301,7 +296,6 @@ public final class Bitstream implements BitstreamErrors {
     /**
      * Unreads the bytes read from the frame.
      *
-     * @throws BitstreamException
      */
     // REVIEW: add new error codes for this.
     public void unreadFrame() throws BitstreamException {
@@ -330,20 +324,18 @@ public final class Bitstream implements BitstreamErrors {
     public boolean isSyncCurrentPosition(int syncmode) throws BitstreamException {
         int read = readBytes(syncBuf, 0, 4);
         int headerString = ((syncBuf[0] << 24) & 0xFF000000) | ((syncBuf[1] << 16) & 0x00FF0000)
-                | ((syncBuf[2] << 8) & 0x0000FF00) | ((syncBuf[3] << 0) & 0x000000FF);
+                | ((syncBuf[2] << 8) & 0x0000FF00) | ((syncBuf[3]) & 0x000000FF);
 
         try {
             source.unread(syncBuf, 0, read);
         } catch (IOException ex) {
         }
 
-        boolean sync = switch (read) {
+        return switch (read) {
             case 0 -> true;
             case 4 -> isSyncMark(headerString, syncmode, syncWord);
             default -> false;
         };
-
-        return sync;
     }
 
     // REVIEW: this class should provide inner classes to
@@ -381,7 +373,7 @@ public final class Bitstream implements BitstreamErrors {
         if (bytesRead != 3)
             throw newBitstreamException(STREAM_EOF, null);
 
-        headerString = ((syncBuf[0] << 16) & 0x00FF0000) | ((syncBuf[1] << 8) & 0x0000FF00) | ((syncBuf[2] << 0) & 0x000000FF);
+        headerString = ((syncBuf[0] << 16) & 0x00FF0000) | ((syncBuf[1] << 8) & 0x0000FF00) | ((syncBuf[2]) & 0x000000FF);
 
         do {
             headerString <<= 8;
@@ -398,7 +390,7 @@ public final class Bitstream implements BitstreamErrors {
     }
 
     public boolean isSyncMark(int headerstring, int syncmode, int word) {
-        boolean sync = false;
+        boolean sync;
 
         if (syncmode == INITIAL_SYNC) {
             //sync =  ((headerstring & 0xFFF00000) == 0xFFF00000);
@@ -425,7 +417,7 @@ public final class Bitstream implements BitstreamErrors {
      * until parse frame is called.
      */
     int readFrameData(int bytesize) throws BitstreamException {
-        int numread = 0;
+        int numread;
         numread = readFully(frameBytes, 0, bytesize);
         frameSize = bytesize;
         wordPointer = -1;
@@ -436,7 +428,7 @@ public final class Bitstream implements BitstreamErrors {
     /**
      * Parses the data previously read with read_frame_data().
      */
-    void parseFrame() throws BitstreamException {
+    void parseFrame() {
         // Convert Bytes read to int
         int b = 0;
         byte[] byteread = frameBytes;
@@ -447,7 +439,7 @@ public final class Bitstream implements BitstreamErrors {
         for (int k = 0; k < bytesize; k = k + 4) {
             @SuppressWarnings("unused")
             int convert = 0;
-            byte b0 = 0;
+            byte b0;
             byte b1 = 0;
             byte b2 = 0;
             byte b3 = 0;
@@ -471,7 +463,7 @@ public final class Bitstream implements BitstreamErrors {
      * (1 <= number_of_bits <= 16)
      */
     public int getBits(int number_of_bits) {
-        int returnvalue = 0;
+        int returnvalue;
         int sum = bitindex + number_of_bits;
 
         // E.B

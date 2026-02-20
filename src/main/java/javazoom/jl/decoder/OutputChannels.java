@@ -57,7 +57,7 @@ public class OutputChannels {
     public static final OutputChannels BOTH = new OutputChannels(BOTH_CHANNELS);
     public static final OutputChannels DOWNMIX = new OutputChannels(DOWNMIX_CHANNELS);
 
-    private int outputChannels;
+    private final int outputChannels;
 
     /**
      * Creates an <code>OutputChannels</code> instance
@@ -104,8 +104,7 @@ public class OutputChannels {
      * for all other types.
      */
     public int getChannelCount() {
-        int count = (outputChannels == BOTH_CHANNELS) ? 2 : 1;
-        return count;
+        return (outputChannels == BOTH_CHANNELS) ? 2 : 1;
     }
 
     public boolean equals(Object o) {

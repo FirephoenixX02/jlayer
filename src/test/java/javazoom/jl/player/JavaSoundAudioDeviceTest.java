@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 public class JavaSoundAudioDeviceTest {
 
     @Test
-    void test() throws Exception {
+    void test() {
         FactoryRegistry factoryRegistry = FactoryRegistry.systemRegistry();
         assertEquals(3, factoryRegistry.factories.size()); // default 2 + my 1
 

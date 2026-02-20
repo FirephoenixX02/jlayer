@@ -49,35 +49,35 @@ final class HuffCodeTab {
     private static final int HTN = 34;
 
     /** string, containing table_description */
-    private char tablename0 = ' ';
+    private final char tablename0;
     /** string, containing table_description */
-    private char tablename1 = ' ';
+    private final char tablename1;
     /** string, containing table_description */
     @SuppressWarnings("unused")
-    private char tablename2 = ' ';
+    private final char tablename2;
 
     /** max. x-index+ */
-    private int xlen;
+    private final int xlen;
     /** max. y-index+ */
-    private int ylen;
+    private final int ylen;
     /** number of linbits */
-    private int linbits;
+    private final int linbits;
     /** max number to be stored in linbits */
     @SuppressWarnings("unused")
-    private int linmax;
+    private final int linmax;
     /** a positive value indicates a reference */
     @SuppressWarnings("unused")
-    private int ref;
+    private final int ref;
     /** pointer to array[xlen][ylen] */
     @SuppressWarnings("unused")
-    private int[] table = null;
+    private final int[] table;
     /** pointer to array[xlen][ylen] */
     @SuppressWarnings("unused")
-    private int[] hlen = null;
+    private final int[] hlen;
     /** decoder tree */
-    private int[][] val = null;
+    private final int[][] val;
     /** length of decoder tree */
-    private int treelen;
+    private final int treelen;
 
     private static final int[][] ValTab0 = {
             {0, 0} // dummy
@@ -436,7 +436,7 @@ final class HuffCodeTab {
     public static HuffCodeTab[] ht = null;
 
     @SuppressWarnings("unused")
-    private static int[] bitbuf = new int[32];
+    private static final int[] bitbuf = new int[32];
 
     /**
      * Big Constructor : Computes all Huffman Tables.
@@ -462,7 +462,7 @@ final class HuffCodeTab {
      * note! for counta,countb -the 4 bit value is returned in y,
      * discard x.
      */
-    public static int huffman_decoder(HuffCodeTab h, int[] x, int[] y, int[] v, int[] w, BitReserve br) {
+    public static void huffman_decoder(HuffCodeTab h, int[] x, int[] y, int[] v, int[] w, BitReserve br) {
         // array of all huffcodtable headers
         // 0..31 Huffman code table 0..31
         // 32,33 count1-tables
@@ -475,12 +475,12 @@ final class HuffCodeTab {
         int error = 1;
         level = dmask;
 
-        if (h.val == null) return 2;
+        if (h.val == null) return;
 
         // table 0 needs no bits
         if (h.treelen == 0) {
             x[0] = y[0] = 0;
-            return 0;
+            return;
         }
 
         // Lookup in Huffman table.
@@ -538,7 +538,6 @@ final class HuffCodeTab {
             if (y[0] != 0)
                 if (br.hget1bit() != 0) y[0] = -y[0];
         }
-        return error;
     }
 
     public static void initHuff() {

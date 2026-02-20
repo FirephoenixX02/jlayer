@@ -22,6 +22,7 @@ package javazoom.jl.decoder;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.logging.Level;
 
@@ -72,7 +73,7 @@ public class BitstreamTest {
     @Test
     public void testStream() throws Exception {
         InputStream id3in = in.getRawID3v2();
-        int size = id3in.available();
+        int size = Objects.requireNonNull(id3in).available();
         Header header = in.readFrame();
         Debug.println(Level.FINE, "--- " + filename + " ---");
         Debug.println(Level.FINE, "ID3v2Size=" + size);

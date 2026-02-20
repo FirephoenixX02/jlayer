@@ -46,17 +46,17 @@ public class Player {
      * The current frame number.
      */
     @SuppressWarnings("unused")
-    private int frame = 0;
+    private final int frame = 0;
 
     /**
      * The MPEG audio bitstream.
      */
-    private Bitstream bitstream;
+    private final Bitstream bitstream;
 
     /**
      * The MPEG audio decoder.
      */
-    private Decoder decoder;
+    private final Decoder decoder;
 
     /**
      * The AudioDevice the audio samples are written to.
@@ -103,10 +103,8 @@ public class Player {
      * Plays a number of MPEG audio frames.
      *
      * @param frames The number of frames to play.
-     * @return true if the last frame was played, or false if there are
-     * more frames.
      */
-    public boolean play(int frames) throws JavaLayerException {
+    public void play(int frames) throws JavaLayerException {
         boolean ret = true;
 
         while (frames-- > 0 && ret) {
@@ -124,7 +122,6 @@ public class Player {
                 }
             }
         }
-        return ret;
     }
 
     /**

@@ -79,13 +79,13 @@ public class jlc {
     static class jlcArgs {
         // channel constants moved into OutputChannels class.
 
-        public int whichC;
+        public final int whichC;
 
         public int outputMode;
 
-        public boolean useOwnScalefactor;
+        public final boolean useOwnScalefactor;
 
-        public float scaleFactor;
+        public final float scaleFactor;
 
         public String outputFilename;
 
@@ -171,7 +171,7 @@ logger.finer("Option = " + argv[i]);
 //            System.out.println("  -d         downmix mode (layer III only)");
             System.out.println("  -p name    output as a PCM wave file");
             System.out.println();
-            System.out.println("  More info on http://www.javazoom.net");
+            System.out.println("  More info on https://www.javazoom.net");
 //            System.out.println("  -f ushort  use this scalefactor instead of the default value 32768");
             return false;
         }
