@@ -140,6 +140,7 @@ public class Player {
             try {
                 bitstream.close();
             } catch (BitstreamException ex) {
+                // Silently ignore - it's not critical
             }
         }
     }
@@ -161,13 +162,11 @@ public class Player {
      * the decoded audio samples.
      */
     public int getPosition() {
-        int position = lastPosition;
-
         AudioDevice out = audio;
         if (out != null) {
-            position = out.getPosition();
+            return out.getPosition();
         }
-        return position;
+        return lastPosition;
     }
 
     /**

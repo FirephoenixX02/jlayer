@@ -73,7 +73,7 @@ public class jlap {
                                          int end,
                                          PlaybackListener listener) throws JavaLayerException {
         AdvancedPlayer player = new AdvancedPlayer(is);
-        player.setPlayBackListener(listener);
+        player.setPlaybackListener(listener);
         // run in new thread
         new Thread(() -> {
             try {

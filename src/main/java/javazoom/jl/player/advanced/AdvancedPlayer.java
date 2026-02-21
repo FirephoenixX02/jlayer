@@ -116,6 +116,7 @@ public class AdvancedPlayer {
             try {
                 bitstream.close();
             } catch (BitstreamException ex) {
+                // Silently ignore - it's not critical
             }
         }
     }
@@ -169,9 +170,12 @@ public class AdvancedPlayer {
      * @param end   The last frame to play
      */
     public void play(int start, int end) throws JavaLayerException {
-        boolean ret = true;
-        int offset = start;
-        while (offset-- > 0 && ret) ret = skipFrame();
+        int framesToSkip = start;
+        while (framesToSkip-- > 0) {
+            if (!skipFrame()) {
+                break;
+            }
+        }
         play(end - start);
     }
 
@@ -179,7 +183,7 @@ public class AdvancedPlayer {
      * Constructs a <code>PlaybackEvent</code>
      */
     private PlaybackEvent createEvent(int id) {
-        return createEvent(audio, id);
+        return new PlaybackEvent(this, id, audio.getPosition());
     }
 
     /**
@@ -192,14 +196,14 @@ public class AdvancedPlayer {
     /**
      * sets the <code>PlaybackListener</code>
      */
-    public void setPlayBackListener(PlaybackListener listener) {
+    public void setPlaybackListener(PlaybackListener listener) {
         this.listener = listener;
     }
 
     /**
      * gets the <code>PlaybackListener</code>
      */
-    public PlaybackListener getPlayBackListener() {
+    public PlaybackListener getPlaybackListener() {
         return listener;
     }
 

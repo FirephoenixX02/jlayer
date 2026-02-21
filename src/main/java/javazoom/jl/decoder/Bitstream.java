@@ -152,7 +152,7 @@ public final class Bitstream implements BitstreamErrors {
      *
      * @return size of ID3v2 tag frames.
      */
-    public int header_pos() {
+    public int headerPos() {
         return headerPos;
     }
 
@@ -201,9 +201,7 @@ public final class Bitstream implements BitstreamErrors {
         // Look for ID3v2
         if ((id3header[0] == 'I') && (id3header[1] == 'D') && (id3header[2] == '3')) {
             in.read(id3header, 0, 3);
-            @SuppressWarnings("unused")
             int majorVersion = id3header[0];
-            @SuppressWarnings("unused")
             int revision = id3header[1];
             in.read(id3header, 0, 4);
             size = (id3header[0] << 21) + (id3header[1] << 14) + (id3header[2] << 7) + (id3header[3]);
@@ -437,7 +435,6 @@ public final class Bitstream implements BitstreamErrors {
         // Check ID3v1 TAG (True only if last frame).
 
         for (int k = 0; k < bytesize; k = k + 4) {
-            @SuppressWarnings("unused")
             int convert = 0;
             byte b0;
             byte b1 = 0;
