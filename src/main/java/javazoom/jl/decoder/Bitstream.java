@@ -43,12 +43,23 @@ import java.io.PushbackInputStream;
 
 
 /**
- * The <code>Bistream</code> class is responsible for parsing
- * an MPEG audio bitstream.
+ * The <code>Bitstream</code> class is responsible for parsing
+ * an MPEG audio bitstream. It handles frame synchronization,
+ * reading frame data, and extracting bits from the stream.
+ * <p>
+ * The bitstream class supports:
+ * <ul>
+ *   <li>MPEG-1, MPEG-2, and MPEG-2.5 audio layers</li>
+ *   <li>ID3v2 tag detection and retrieval</li>
+ *   <li>CRC error checking for protected frames</li>
+ *   <li>VBR (XING/VBRI) header detection</li>
+ * </ul>
  * <p>
  * <b>REVIEW:</b> much of the parsing currently occurs in the
  * various decoders. This should be moved into this class and associated
  * inner classes.
+ * <p>
+ * This class is not thread-safe and should be used by a single thread.
  */
 public final class Bitstream implements BitstreamErrors {
 
@@ -65,9 +76,10 @@ public final class Bitstream implements BitstreamErrors {
     static final byte STRICT_SYNC = 1;
 
     /**
-     * Maximum size of the frame buffer.
+     * Maximum size of the frame buffer in integers.
      * <p>
-     * max. 1730 bytes per frame: 144 * 384kbit/s / 32000 Hz + 2 Bytes CRC
+     * Supports max. 1730 bytes per frame:
+     * 144 * 384kbit/s / 32000 Hz + 2 Bytes CRC
      */
     private static final int BUFFER_INT_SIZE = 433;
 
@@ -87,54 +99,80 @@ public final class Bitstream implements BitstreamErrors {
     private final byte[] frameBytes = new byte[BUFFER_INT_SIZE * 4];
 
     /**
-     * Index into <code>frameBuffer</code> where the next bits are
+     * Index into {@code frameBuffer} where the next bits are
      * retrieved.
      */
     private int wordPointer;
 
     /**
-     * Number (0-31, from MSB to LSB) of next bit for get_bits()
+     * Number (0-31, from MSB to LSB) of next bit for get_bits().
      */
     private int bitindex;
 
     /**
-     * The current specified syncword
+     * The current specified syncword for frame synchronization.
      */
     private int syncWord;
 
     /**
-     * Audio header position in stream.
+     * Audio header position in stream (offset after ID3v2 tag).
      */
     private int headerPos = 0;
 
     /**
-     *
+     * Flag indicating single channel (mono) mode.
      */
     private boolean singleChMode;
 
+    /**
+     * Bitmask array for extracting variable-length bit fields.
+     * Index corresponds to number of bits to extract.
+     */
     private final int[] bitmask = {
             0, // dummy
             0x00000001, 0x00000003, 0x00000007, 0x0000000F, 0x0000001F, 0x0000003F, 0x0000007F, 0x000000FF, 0x000001FF, 0x000003FF,
             0x000007FF, 0x00000FFF, 0x00001FFF, 0x00003FFF, 0x00007FFF, 0x0000FFFF, 0x0001FFFF
     };
 
+    /**
+     * The source input stream wrapped in a PushbackInputStream.
+     */
     private final PushbackInputStream source;
 
+    /**
+     * The header object for the current frame.
+     */
     private final Header header = new Header();
 
+    /**
+     * Temporary buffer for reading sync bytes.
+     */
     private final byte[] syncBuf = new byte[4];
 
+    /**
+     * CRC calculator for frame protection checking.
+     */
     private final Crc16[] crc = new Crc16[1];
 
+    /**
+     * Raw ID3v2 tag data if present in the stream.
+     */
     private byte[] rawid3v2 = null;
 
+    /**
+     * Flag indicating if this is the first frame being read.
+     */
     private boolean firstframe;
 
     /**
-     * Construct a IBitstream that reads data from a
-     * given InputStream.
+     * Constructs a Bitstream that reads data from a given InputStream.
+     * <p>
+     * The input stream is wrapped in a BufferedInputStream for
+     * efficient reading. ID3v2 tags are detected and stored if
+     * present at the beginning of the stream.
      *
-     * @param in The InputStream to read from.
+     * @param in The InputStream to read from. Must not be null.
+     * @throws NullPointerException if in is null.
      */
     public Bitstream(InputStream in) {
         if (in == null)
@@ -148,19 +186,27 @@ public final class Bitstream implements BitstreamErrors {
     }
 
     /**
-     * Return position of the first audio header.
+     * Returns the position of the first audio header in the stream.
+     * <p>
+     * This value represents the size of any ID3v2 tag frames
+     * plus the 10-byte ID3v2 header. If no ID3v2 tag is present,
+     * returns 0.
      *
-     * @return size of ID3v2 tag frames.
+     * @return The offset in bytes from the start of the stream
+     *         to the first audio header.
      */
     public int headerPos() {
         return headerPos;
     }
 
     /**
-     * Load ID3v2 frames.
+     * Loads ID3v2 frames from the input stream if present.
+     * <p>
+     * This method reads the 10-byte ID3v2 header to determine
+     * the tag size, then stores the complete tag for later
+     * retrieval via {@link #getRawID3v2()}.
      *
-     * @param in MP3 InputStream.
-     * @author JavaZOOM
+     * @param in The MP3 InputStream to read from.
      */
     private void loadID3v2(InputStream in) {
         int size = -1;
@@ -188,11 +234,15 @@ public final class Bitstream implements BitstreamErrors {
     }
 
     /**
-     * Parse ID3v2 tag header to find out size of ID3v2 frames.
+     * Parses the ID3v2 tag header to determine the size of ID3v2 frames.
+     * <p>
+     * Reads the 10-byte ID3v2 header and extracts the tag size
+     * from the synched integer in bytes 6-9.
      *
-     * @param in MP3 InputStream
-     * @return size of ID3v2 frames + header
-     * @author JavaZOOM
+     * @param in The MP3 InputStream containing the ID3v2 header.
+     * @return The size of ID3v2 frames plus header (10 bytes),
+     *         or -10 if not an ID3v2 tag.
+     * @throws IOException if reading the header fails.
      */
     private int readID3v2Header(InputStream in) throws IOException {
         byte[] id3header = new byte[4];
@@ -210,9 +260,14 @@ public final class Bitstream implements BitstreamErrors {
     }
 
     /**
-     * Return raw ID3v2 frames + header.
+     * Returns raw ID3v2 frames plus header as an InputStream.
+     * <p>
+     * This method provides access to the complete ID3v2 tag
+     * data if one was present at the beginning of the stream.
+     * The returned stream can be read to parse ID3v2 frame data.
      *
-     * @return ID3v2 InputStream or null if ID3v2 frames are not available.
+     * @return An InputStream containing the raw ID3v2 data,
+     *         or null if no ID3v2 tag was found.
      */
     public InputStream getRawID3v2() {
         if (rawid3v2 == null)
@@ -223,8 +278,14 @@ public final class Bitstream implements BitstreamErrors {
     }
 
     /**
-     * Close the Bitstream.
+     * Closes the Bitstream and releases underlying resources.
+     * <p>
+     * This method closes the underlying input stream. After
+     * calling this method, the bitstream cannot be used to
+     * read additional frames.
      *
+     * @throws BitstreamException if an error occurs while
+     *                            closing the stream.
      */
     public void close() throws BitstreamException {
         try {
@@ -236,9 +297,19 @@ public final class Bitstream implements BitstreamErrors {
 
     /**
      * Reads and parses the next frame from the input source.
+     * <p>
+     * This method performs frame synchronization, reads the
+     * frame data, and parses the frame header. If an invalid
+     * frame is encountered, it attempts to skip to the next
+     * valid frame.
+     * <p>
+     * VBR (XING/VBRI) header information is parsed from the
+     * first frame if present.
      *
-     * @return the Header describing details of the frame read,
-     * or null if the end of the stream has been reached.
+     * @return The Header describing details of the frame read,
+     *         or null if the end of the stream has been reached.
+     * @throws BitstreamException if a fatal error occurs while
+     *                            reading the frame.
      */
     public Header readFrame() throws BitstreamException {
         Header result = null;
@@ -292,10 +363,17 @@ public final class Bitstream implements BitstreamErrors {
     }
 
     /**
-     * Unreads the bytes read from the frame.
+     * Unreads the bytes read from the frame back into the stream.
+     * <p>
+     * This method allows the frame data to be re-read, which
+     * is useful when frame validation fails and the frame
+     * needs to be re-examined.
+     * <p>
+     * <b>REVIEW:</b> add new error codes for this operation.
      *
+     * @throws BitstreamException if an error occurs while
+     *                            unread the frame data.
      */
-    // REVIEW: add new error codes for this.
     public void unreadFrame() throws BitstreamException {
         if (wordPointer == -1 && bitindex == -1 && (frameSize > 0)) {
             try {
@@ -307,7 +385,10 @@ public final class Bitstream implements BitstreamErrors {
     }
 
     /**
-     * Close MP3 frame.
+     * Closes the current MP3 frame and resets internal state.
+     * <p>
+     * This method prepares the bitstream for reading the next
+     * frame by resetting pointers and counters.
      */
     public void closeFrame() {
         frameSize = -1;
@@ -318,6 +399,16 @@ public final class Bitstream implements BitstreamErrors {
     /**
      * Determines if the next 4 bytes of the stream represent a
      * frame header.
+     * <p>
+     * This method checks the sync mark without consuming the
+     * bytes from the stream, allowing peek-ahead synchronization.
+     *
+     * @param syncmode The synchronization mode. Use {@link #INITIAL_SYNC}
+     *                 for initial sync or {@link #STRICT_SYNC} for
+     *                 subsequent frames.
+     * @return true if the bytes represent a valid frame header,
+     *         false otherwise.
+     * @throws BitstreamException if an error occurs while reading.
      */
     public boolean isSyncCurrentPosition(int syncmode) throws BitstreamException {
         int read = readBytes(syncBuf, 0, 4);
@@ -336,13 +427,28 @@ public final class Bitstream implements BitstreamErrors {
         };
     }
 
-    // REVIEW: this class should provide inner classes to
-    // parse the frame contents. Eventually, readBits will
-    // be removed.
+    /**
+     * Reads bits from the bitstream.
+     * <p>
+     * This is a convenience method that delegates to
+     * {@link #getBits(int)}.
+     *
+     * @param n The number of bits to read (1-16).
+     * @return The bits read, in the lower bits of an int.
+     */
     public int readBits(int n) {
         return getBits(n);
     }
 
+    /**
+     * Reads bits from the bitstream with CRC checking.
+     * <p>
+     * <b>REVIEW:</b> CRC check not yet implemented.
+     * This method currently behaves the same as {@link #readBits(int)}.
+     *
+     * @param n The number of bits to read (1-16).
+     * @return The bits read, in the lower bits of an int.
+     */
     public int readCheckedBits(int n) {
         // REVIEW: implement CRC check.
         return getBits(n);
@@ -457,7 +563,11 @@ public final class Bitstream implements BitstreamErrors {
     /**
      * Read bits from buffer into the lower bits of an unsigned int.
      * The LSB contains the latest read bit of the stream.
-     * (1 <= number_of_bits <= 16)
+     * <p>
+     * Number of bits must be between 1 and 16.
+     *
+     * @param number_of_bits The number of bits to read (1-16).
+     * @return The bits read, in the lower bits of an int.
      */
     public int getBits(int number_of_bits) {
         int returnvalue;

@@ -34,9 +34,22 @@ package javazoom.jl.decoder;
 
 /**
  * Class for extracting information from a frame header.
+ * <p>
+ * This class parses MPEG audio frame headers and provides
+ * access to frame metadata including layer, version, sample
+ * rate, bitrate, and mode information.
+ * <p>
+ * The class also supports VBR (XING/VBRI) header detection
+ * and CRC validation for protected frames.
  */
 public final class Header {
 
+    /**
+     * Sample frequency table for MPEG audio.
+     * <p>
+     * Index 0: MPEG-2.5, Index 1: MPEG-1, Index 2: MPEG-2
+     * Values: 22050, 24000, 16000, 1 (invalid)
+     */
     public static final int[][] frequencies ={
             {22050, 24000, 16000, 1},
             {44100, 48000, 32000, 1},
@@ -44,22 +57,53 @@ public final class Header {
     };
 
     /**
-     * Constant for MPEG-2 LSF version
+     * Constant for MPEG-2 LSF version.
      */
     public static final int MPEG2_LSF = 0;
-    public static final int MPEG25_LSF = 2; // SZD
 
     /**
-     * Constant for MPEG-1 version
+     * Constant for MPEG-2.5 LSF version.
+     */
+    public static final int MPEG25_LSF = 2;
+
+    /**
+     * Constant for MPEG-1 version.
      */
     public static final int MPEG1 = 1;
 
+    /**
+     * Constant for stereo mode.
+     */
     public static final int STEREO = 0;
+
+    /**
+     * Constant for joint stereo mode.
+     */
     public static final int JOINT_STEREO = 1;
+
+    /**
+     * Constant for dual channel mode.
+     */
     public static final int DUAL_CHANNEL = 2;
+
+    /**
+     * Constant for single channel (mono) mode.
+     */
     public static final int SINGLE_CHANNEL = 3;
+
+    /**
+     * Constant for 44.1 kHz sample rate.
+     */
     public static final int FOURTYFOUR_POINT_ONE = 0;
+
+    /**
+     * Constant for 48 kHz sample rate.
+     */
     public static final int FOURTYEIGHT = 1;
+
+    /**
+     * Constant for 32 kHz sample rate.
+     */
     public static final int THIRTYTWO = 2;
 
     private int hLayer, h_protection_bit, hBitrateIndex,
@@ -78,12 +122,30 @@ public final class Header {
     private byte[] h_vbr_toc;
 
     private byte syncmode = Bitstream.INITIAL_SYNC;
+
+    /**
+     * CRC calculator for frame protection checking.
+     */
     private Crc16 crc;
 
+    /**
+     * CRC checksum for protected frames.
+     */
     public short checksum;
+
+    /**
+     * Frame size in bytes.
+     */
     public int framesize;
+
+    /**
+     * Number of granules per frame.
+     */
     public int nSlots;
 
+    /**
+     * Raw header string value.
+     */
     private int _headerstring = -1; // E.B
 
     Header() {

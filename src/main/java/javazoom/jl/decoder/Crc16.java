@@ -41,7 +41,10 @@ public final class Crc16 {
     }
 
     /**
-     * Feed a bitString to the crc calculation (0 < length <= 32).
+     * Feed a bitString to the crc calculation (0 &lt; length &lt;= 32).
+     *
+     * @param bitString The bit string to add to the CRC calculation.
+     * @param length    The number of bits to process (1-32).
      */
     public void addBits(int bitString, int length) {
         int bitmask = 1 << (length - 1);
